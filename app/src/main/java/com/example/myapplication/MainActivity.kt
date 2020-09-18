@@ -1,11 +1,17 @@
 package com.example.myapplication
 
+import android.content.Context
+import android.content.PeriodicSync
 import android.os.Bundle
+import android.util.Log
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import android.widget.TextView
+import com.google.gson.Gson
+import java.util.prefs.PreferenceChangeEvent
 
 class MainActivity : AppCompatActivity() {
+
 
     private lateinit var textMessage: TextView
     private val onNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
@@ -33,5 +39,14 @@ class MainActivity : AppCompatActivity() {
 
         textMessage = findViewById(R.id.message)
         navView.setOnNavigationItemSelectedListener(onNavigationItemSelectedListener)
+
+
+        val preferences = baseContext.getSharedPreferences(MyApp.SP_NAME, Context.MODE_PRIVATE)
+
+        Log.i("phoneNumber0", preferences.toString())
+        for (n in preferences.all) {
+            Log.i("phoneNumber", Gson().toJson(n.value))
+        }
+
     }
 }
