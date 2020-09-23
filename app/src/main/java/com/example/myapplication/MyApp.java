@@ -3,6 +3,7 @@ package com.example.myapplication;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.provider.Telephony;
 import com.alibaba.android.dingtalk.userbase.model.LocalContactObject.LocalContactObject;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -14,6 +15,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 
@@ -27,6 +29,7 @@ public class MyApp implements IXposedHookLoadPackage {
         final String clzName = "com.alibaba.android.rimet.tools.ContactHelper";
 
         if (lpparam.packageName.equals("com.alibaba.android.rimet")) {
+
             findAndHookMethod(Application.class, "attach", Context.class, new XC_MethodHook() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -46,7 +49,7 @@ public class MyApp implements IXposedHookLoadPackage {
                     Map<String, Object> spAll = (Map<String, Object>) sp.getAll();
                     int a = 0;
                     for (String name : spAll.keySet()) {
-                        log(String.format("phoneNumber2(%d): %s", a++, spAll.get(name)));
+//                        log(String.format("phoneNumber2(%d): %s", a++, spAll.get(name)));
                     }
 
                     try {
@@ -63,6 +66,33 @@ public class MyApp implements IXposedHookLoadPackage {
 //                        final Class<?> bClass = cl.loadClass("kaq"); // UserProfileImpl.java
                         final Class<?> clzArrayListAdapter = cl.loadClass("kzv"); // ArrayListAdapter.java
                         final Class<?> clzLocalContactViewHolder = cl.loadClass("kgz"); // LocalContactViewHolder.java
+
+                        final Class<?> psl = cl.loadClass("pmh"); // .java
+                        XposedBridge.hookAllMethods(psl, "a", new XC_MethodHook() {
+                            @Override
+                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                                super.afterHookedMethod(param);
+                                Field a1 = psl.getDeclaredField("a");
+                                a1.setAccessible(true);
+                                ConcurrentHashMap map = (ConcurrentHashMap) a1.get(param.thisObject);
+                                String c = "";
+                                for (Object o : map.keySet()) {
+                                    if (o.getClass().getName().contains("UserMixIService")) {
+                                        log("Name: " + o.getClass());
+                                    }
+                                }
+                            }
+                        });
+
+//                        final Class<?> pmg = cl.loadClass("pmg"); // .java
+//                        XposedBridge.hookAllMethods(pmg, "invoke", new XC_MethodHook() {
+//                            @Override
+//                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+//                                super.afterHookedMethod(param);
+//                                log("RpcReply: " + new Gson().toJson(param.getResult()));
+//                            }
+//                        });
+
 
                         final HashMap<Class, String> map = new HashMap<Class, String>() {{
                             put(clzArrayListAdapter, "ArrayListAdapter");
@@ -137,6 +167,11 @@ public class MyApp implements IXposedHookLoadPackage {
                                                         printData(map1.values().toArray());
                                                     }
                                                 }
+
+                                                log(String.format("markMethodCalled: %s->%s",
+                                                        clzObj.getSimpleName(),
+                                                        m.getName()
+                                                ));
                                             }
 
                                             if (clzObj == clzArrayListAdapter && param.args.length > 0 && param.args[0] instanceof List
@@ -170,6 +205,11 @@ public class MyApp implements IXposedHookLoadPackage {
                                                 if (effect == 0) {
                                                     return;
                                                 }
+
+                                                log(String.format("markMethodCalled: %s->%s",
+                                                        clzObj.getSimpleName(),
+                                                        m.getName()
+                                                        ));
                                                 if (mapLocalContact.size() > 0) {
                                                     Object demo = mapLocalContact.values().toArray()[0];
                                                     log(String.format("Args(%s:%s): %s(%d)=%s ...",
@@ -201,10 +241,37 @@ public class MyApp implements IXposedHookLoadPackage {
                                         }
                                     });
                                 } catch (Exception e) {
-
                                 }
                             }
                         }
+
+
+
+                        final Class clzContactInterface = cl.loadClass("com.alibaba.android.dingtalk.userbase.ContactInterface");
+
+                        Method a1 = clzContactInterface.getMethod("a");
+                        Object invoke = a1.invoke(null);
+
+//                        for (Method mm: invoke.getClass().getDeclaredMethods() ) {
+//                            log("Method: ", mm.getName());
+//                        }
+//                        Class clzEnw = cl.loadClass("enw");
+                        Method a2 = invoke.getClass().getMethod("a");
+
+
+                        log("ContactInterface instance: ", a2.getName());
+                        Class clzSendFriend4 = cl.loadClass("com.alibaba.android.user.contact.activities.SendFriendRequestActivity$4");
+                        XposedBridge.hookAllMethods(clzSendFriend4, "onDataReceived", new XC_MethodHook() {
+                            @Override
+                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                                super.afterHookedMethod(param);
+                                log("onDataReceived: ", new Gson().toJson(param.args[0]));
+                            }
+                        });
+
+                        a2.invoke(invoke, 371926622, clzSendFriend4.newInstance());
+
+
                     } catch (Exception e) {
                         log(String.format("MyApp 寻找%s报错:\t%s", clzName, e.toString()));
 
@@ -463,24 +530,25 @@ public class MyApp implements IXposedHookLoadPackage {
 
 
     public void printData(Object[] items) {
+
         for (Object x : items) {
             HashMap<String, Object> row = (HashMap<String, Object>) x;
             if (row.containsKey("phoneNumber")) {
-                log("items: " + new Gson().toJson(row));
-                log("items: " + row.toString());
+//                log("items: " + new Gson().toJson(row));
+//                log("items: " + row.toString());
             }
         }
     }
 
     public void printItem(HashMap<String, Object> row) {
         if (row.containsKey("phoneNumber")) {
-            log(String.format("%s,%s,%s,%s,%s",
-                    "contactInfo",
-                    row.get("name"),
-                    row.get("nick"),
-                    row.get("phoneNumber"),
-                    row.get("unitePhone")
-            ));
+//            log(String.format("%s,%s,%s,%s,%s",
+//                    "contactInfo",
+//                    row.get("name"),
+//                    row.get("nick"),
+//                    row.get("phoneNumber"),
+//                    row.get("unitePhone")
+//            ));
         }
     }
 
