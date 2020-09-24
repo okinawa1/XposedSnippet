@@ -3,17 +3,25 @@ package com.example.myapplication;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+
 import com.alibaba.android.dingtalk.userbase.model.LocalContactObject.LocalContactObject;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.*;
 
 import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 
@@ -31,16 +39,11 @@ public class MyApp implements IXposedHookLoadPackage {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                     super.afterHookedMethod(param);
-
-
                     if (param.args.length <= 0) {
                         return;
                     }
-
-
                     final Context ctx = (Context) param.args[0];
-                    ClassLoader cl = ctx.getClassLoader();
-
+                    final ClassLoader cl = ctx.getClassLoader();
                     SharedPreferences sp = ctx.getSharedPreferences(SP_NAME, Context.MODE_PRIVATE);
 
                     Map<String, Object> spAll = (Map<String, Object>) sp.getAll();
@@ -50,13 +53,11 @@ public class MyApp implements IXposedHookLoadPackage {
                     }
 
                     try {
-
-
 //                        final Class<?> bClass = cl.loadClass("kku"); // CommonContactDataSourceImpl.java
 //                        final Class<?> bClass = cl.loadClass("kli"); // CommonContactDataSourceImpl.java
-                        final Class<?> clzLocalContactAdapter = cl.loadClass("kgv"); // LocalContactAdapter.java
+//                        final Class<?> clzLocalContactAdapter = cl.loadClass("kgv"); // LocalContactAdapter.java
 //                        final Class<?> bClass = cl.loadClass("kta"); // SimpleUserProfileObject.java
-                        final Class<?> clzContactHelper = cl.loadClass("kjq"); // ContactHelper.java
+//                        final Class<?> clzContactHelper = cl.loadClass("kjq"); // ContactHelper.java
 
                         final Class<?> clzLocalContactFragment = cl.loadClass("com.alibaba.android.user.contact.organization.localcontact.LocalContactFragment");
 //                        final Class<?> bClass = cl.loadClass("com.alibaba.android.user.entry.LocalContactEntry");
@@ -66,8 +67,9 @@ public class MyApp implements IXposedHookLoadPackage {
 
                         final HashMap<Class, String> map = new HashMap<Class, String>() {{
                             put(clzArrayListAdapter, "ArrayListAdapter");
-                            put(clzLocalContactAdapter, "LocalContactAdapter");
-                            put(clzContactHelper, "ContactHelper");
+//                            put(clzLocalContactAdapter, "LocalContactAdapter");
+
+//                            put(clzContactHelper, "ContactHelper");
                             put(clzLocalContactFragment, "LocalContactFragment");
                             put(clzLocalContactViewHolder, "LocalContactViewHolder");
                         }};
@@ -78,7 +80,8 @@ public class MyApp implements IXposedHookLoadPackage {
 
                         for (final Class clzObj : new Class[]{
                                 clzArrayListAdapter,
-                                clzLocalContactAdapter,
+//                                clzLocalContactAdapter,
+
 //                                clzLocalContactViewHolder,
 //                                clzLocalContactFragment
                         }) {
@@ -95,49 +98,52 @@ public class MyApp implements IXposedHookLoadPackage {
                                             super.afterHookedMethod(param);
                                             Gson gson = new Gson();
 
-                                            if (map1.size() == 0 && clzObj == clzLocalContactAdapter) {
-                                                Field g = clzLocalContactAdapter.getField("g");
-                                                g.setAccessible(true);
-                                                // Map<Long, >
-                                                HashMap o = (HashMap) g.get(param.thisObject);
-                                                if (o.size() < 100 || temp.size() > 0) {
-                                                    return;
-                                                }
-                                                temp.putAll(o);
-                                                for (Object k : o.keySet()) {
-                                                    Object row = o.get(k);
-                                                    try {
-                                                        row.getClass().getField("uid");
-                                                        row.getClass().getField("nick");
-                                                        HashMap<String, Object> fromJson = gson.fromJson(gson.toJson(row),
-                                                                new TypeToken<HashMap<String, Object>>() {
-                                                                }.getType());
-                                                        Double uid = (Double) fromJson.get("uid");
-                                                        if (mapLocalContact.containsKey(uid)) {
-                                                            LocalContactObject contact = mapLocalContact.get(uid);
-                                                            if (!fromJson.containsKey("phoneNumber")) {
-                                                                fromJson.put("name", contact.getName());
-                                                                fromJson.put("phoneNumber", contact.getPhoneNumber());
-                                                                fromJson.put("unitePhone", contact.getUnitePhone());
-                                                                printItem(ctx, fromJson);
-                                                            }
-                                                        }
-                                                        map1.put(uid.longValue(), fromJson);
-                                                    } catch (Exception e) {
-                                                        log("error: " + e.toString());
-                                                    }
-                                                }
-
-                                                String c = "";
-                                                if (map1.size() != 0) {
-                                                    c = new Gson().toJson(map1.values().toArray()[0]);
-                                                    c += " ...";
-                                                    flag[0] = flag[0] | 1;
-                                                    if (flag[0] >= 3) {
-                                                        printData(map1.values().toArray());
-                                                    }
-                                                }
-                                            }
+//                                            if (map1.size() == 0 && clzObj == clzLocalContactAdapter) {
+//                                                Field g = clzLocalContactAdapter.getField("g");
+//                                                g.setAccessible(true);
+//                                                // Map<Long, >
+//                                                HashMap o = (HashMap) g.get(param.thisObject);
+//                                                if (o == null) {
+//                                                    return;
+//                                                }
+//                                                if (o.size() < 100 || temp.size() > 0) {
+//                                                    return;
+//                                                }
+//                                                temp.putAll(o);
+//                                                for (Object k : o.keySet()) {
+//                                                    Object row = o.get(k);
+//                                                    try {
+//                                                        row.getClass().getField("uid");
+//                                                        row.getClass().getField("nick");
+//                                                        HashMap<String, Object> fromJson = gson.fromJson(gson.toJson(row),
+//                                                                new TypeToken<HashMap<String, Object>>() {
+//                                                                }.getType());
+//                                                        Double uid = (Double) fromJson.get("uid");
+//                                                        if (mapLocalContact.containsKey(uid)) {
+//                                                            LocalContactObject contact = mapLocalContact.get(uid);
+//                                                            if (!fromJson.containsKey("phoneNumber")) {
+//                                                                fromJson.put("name", contact.getName());
+//                                                                fromJson.put("phoneNumber", contact.getPhoneNumber());
+//                                                                fromJson.put("unitePhone", contact.getUnitePhone());
+//                                                                printItem(ctx, fromJson);
+//                                                            }
+//                                                        }
+//                                                        map1.put(uid.longValue(), fromJson);
+//                                                    } catch (Exception e) {
+//                                                        log("error: " + e.toString());
+//                                                    }
+//                                                }
+//
+//                                                String c = "";
+//                                                if (map1.size() != 0) {
+//                                                    c = new Gson().toJson(map1.values().toArray()[0]);
+//                                                    c += " ...";
+//                                                    flag[0] = flag[0] | 1;
+//                                                    if (flag[0] >= 3) {
+//                                                        printData(map1.values().toArray());
+//                                                    }
+//                                                }
+//                                            }
 
                                             if (clzObj == clzArrayListAdapter && param.args.length > 0 && param.args[0] instanceof List
                                             ) {
@@ -197,7 +203,7 @@ public class MyApp implements IXposedHookLoadPackage {
 
                                             String s = new Gson().toJson(args);
                                             String s1 = new Gson().toJson(items);
-//                                            log(String.format("desc(%s:%s):\t%s\t%s", map.get(clzObj), param.method.getName(), s, s1));
+                                            log(String.format("desc(%s:%s):\t%s\t%s", map.get(clzObj), param.method.getName(), s, s1));
                                         }
                                     });
                                 } catch (Exception e) {
@@ -205,6 +211,74 @@ public class MyApp implements IXposedHookLoadPackage {
                                 }
                             }
                         }
+
+
+//                        Class<?> eduClass = cl.loadClass("pmg");
+//                        XposedBridge.hookAllMethods(eduClass, "invoke", new XC_MethodHook() {
+//                            @Override
+//                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+//                                super.afterHookedMethod(param);
+//                                if (param.args.length != 3) {
+//                                    return;
+//                                }
+//                                Method m2 = (Method) param.args[1];
+//                                Object[] items = (Object[]) param.args[2];
+//                                log(String.format("pmg\t%s: %s", m2.getName(), m2));
+//                                log(String.format("pmg\t%s: %s", items, items.length));
+//                            }
+//                        });
+
+                        Class<?> plvClass = cl.loadClass("plv"); // plv
+                        XposedBridge.hookAllMethods(plvClass, "a", new XC_MethodHook() {
+                            @Override
+                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                                super.afterHookedMethod(param);
+                                Object result = param.getResult();
+                                if (result != null && result.getClass().getName().contains("edm")) {
+                                    log(String.format("cast2: [%s] %s",
+                                            result.getClass(),
+                                            new Gson().toJson(result)
+                                    ));
+
+                                    Class<?> pmh = cl.loadClass("pmh");
+                                    Field declaredField = pmh.getDeclaredField("a");
+                                    declaredField.setAccessible(true);
+                                    ConcurrentHashMap<Class, Object> map = (ConcurrentHashMap) declaredField.get(pmh);
+
+                                    for (Class clz : map.keySet()) {
+                                        if (clz.getName().contains("UserMixIService")) {
+                                            log(String.format("mapKey: %s=%s",
+                                                    clz.getName(),
+                                                    map.get(clz).getClass()
+                                            ));
+
+//                                            for (Method m : clz.getDeclaredMethods()) {
+//                                                log(String.format("mapClass: %s", m));
+//                                            }
+
+                                            XposedBridge.hookAllMethods(
+                                                    map.get(clz).getClass(),
+                                                    "invoke",
+                                                    new XC_MethodHook() {
+                                                        @Override
+                                                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                                                            super.afterHookedMethod(param);
+                                                            log(String.format("getUserProfileByUid", param.args));
+                                                        }
+                                                    }
+                                            );
+
+                                        }
+                                    }
+
+                                }
+                            }
+                        });
+
+                        for (Method m : cl.loadClass("pmf").getDeclaredMethods()) {
+                            log(String.format("pmfClass: %s", m));
+                        }
+
                     } catch (Exception e) {
                         log(String.format("MyApp 寻找%s报错:\t%s", clzName, e.toString()));
 
@@ -222,7 +296,6 @@ public class MyApp implements IXposedHookLoadPackage {
     //    @Override
     public void handleLoadPackage1(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
         final String clzName = "com.alibaba.android.rimet.tools.ContactHelper";
-
 
         if (lpparam.packageName.equals("com.alibaba.android.rimet")) {
             findAndHookMethod(Application.class, "attach", Context.class, new XC_MethodHook() {
