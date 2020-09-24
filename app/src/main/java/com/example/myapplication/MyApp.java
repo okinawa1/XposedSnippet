@@ -3,19 +3,21 @@ package com.example.myapplication;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.provider.Telephony;
 import com.alibaba.android.dingtalk.userbase.model.LocalContactObject.LocalContactObject;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
+import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 
@@ -35,14 +37,13 @@ public class MyApp implements IXposedHookLoadPackage {
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                     super.afterHookedMethod(param);
 
-
                     if (param.args.length <= 0) {
                         return;
                     }
 
 
                     final Context ctx = (Context) param.args[0];
-                    ClassLoader cl = ctx.getClassLoader();
+                    final ClassLoader cl = ctx.getClassLoader();
 
                     SharedPreferences sp = ctx.getSharedPreferences(SP_NAME, Context.MODE_PRIVATE);
 
@@ -67,32 +68,6 @@ public class MyApp implements IXposedHookLoadPackage {
                         final Class<?> clzArrayListAdapter = cl.loadClass("kzv"); // ArrayListAdapter.java
                         final Class<?> clzLocalContactViewHolder = cl.loadClass("kgz"); // LocalContactViewHolder.java
 
-                        final Class<?> psl = cl.loadClass("pmh"); // .java
-                        XposedBridge.hookAllMethods(psl, "a", new XC_MethodHook() {
-                            @Override
-                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                                super.afterHookedMethod(param);
-                                Field a1 = psl.getDeclaredField("a");
-                                a1.setAccessible(true);
-                                ConcurrentHashMap map = (ConcurrentHashMap) a1.get(param.thisObject);
-                                String c = "";
-                                for (Object o : map.keySet()) {
-                                    if (o.getClass().getName().contains("UserMixIService")) {
-                                        log("Name: " + o.getClass());
-                                    }
-                                }
-                            }
-                        });
-
-//                        final Class<?> pmg = cl.loadClass("pmg"); // .java
-//                        XposedBridge.hookAllMethods(pmg, "invoke", new XC_MethodHook() {
-//                            @Override
-//                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-//                                super.afterHookedMethod(param);
-//                                log("RpcReply: " + new Gson().toJson(param.getResult()));
-//                            }
-//                        });
-
 
                         final HashMap<Class, String> map = new HashMap<Class, String>() {{
                             put(clzArrayListAdapter, "ArrayListAdapter");
@@ -101,6 +76,7 @@ public class MyApp implements IXposedHookLoadPackage {
                             put(clzLocalContactFragment, "LocalContactFragment");
                             put(clzLocalContactViewHolder, "LocalContactViewHolder");
                         }};
+
                         final HashMap<Long, HashMap<String, Object>> map1 = new HashMap<Long, HashMap<String, Object>>();
                         final HashMap<Long, LocalContactObject> mapLocalContact = new HashMap<Long, LocalContactObject>();
                         final HashMap temp = new HashMap();
@@ -113,7 +89,6 @@ public class MyApp implements IXposedHookLoadPackage {
 //                                clzLocalContactFragment
                         }) {
                             for (final Method m : clzObj.getMethods()) {
-//                                log(String.format("findMethod(%s):\t", map.get(clzObj)) + m.toString());
 
                                 if (clzObj == clzArrayListAdapter && !m.getName().equals("a")) {
                                     continue;
@@ -128,12 +103,15 @@ public class MyApp implements IXposedHookLoadPackage {
                                             if (map1.size() == 0 && clzObj == clzLocalContactAdapter) {
                                                 Field g = clzLocalContactAdapter.getField("g");
                                                 g.setAccessible(true);
-                                                // Map<Long, >
+
                                                 HashMap o = (HashMap) g.get(param.thisObject);
                                                 if (o.size() < 100 || temp.size() > 0) {
                                                     return;
                                                 }
+
                                                 temp.putAll(o);
+                                                log(String.format("LocalContactAdapter has %d", temp.size()));
+
                                                 for (Object k : o.keySet()) {
                                                     Object row = o.get(k);
                                                     try {
@@ -177,6 +155,7 @@ public class MyApp implements IXposedHookLoadPackage {
                                             if (clzObj == clzArrayListAdapter && param.args.length > 0 && param.args[0] instanceof List
                                             ) {
                                                 List arg = (List) param.args[0]; // List<LocalContactObject>
+                                                log(String.format("LocalContactObject has %d", arg.size()));
                                                 int effect = 0;
                                                 for (Object o : arg) {
                                                     try {
@@ -209,9 +188,11 @@ public class MyApp implements IXposedHookLoadPackage {
                                                 log(String.format("markMethodCalled: %s->%s",
                                                         clzObj.getSimpleName(),
                                                         m.getName()
-                                                        ));
+                                                ));
                                                 if (mapLocalContact.size() > 0) {
-                                                    Object demo = mapLocalContact.values().toArray()[0];
+                                                    Object demo = mapLocalContact.values().toArray()[
+                                                            mapLocalContact.size() - 1
+                                                            ];
                                                     log(String.format("Args(%s:%s): %s(%d)=%s ...",
                                                             map.get(clzObj),
                                                             m.getName(),
@@ -227,17 +208,6 @@ public class MyApp implements IXposedHookLoadPackage {
                                                     }
                                                 }
                                             }
-
-                                            List<Object> args = new ArrayList<>();
-                                            args.addAll(Arrays.asList(param.args));
-
-                                            List<Object> items = new ArrayList<>();
-                                            items.add(param.getResult());
-
-
-                                            String s = new Gson().toJson(args);
-                                            String s1 = new Gson().toJson(items);
-//                                            log(String.format("desc(%s:%s):\t%s\t%s", map.get(clzObj), param.method.getName(), s, s1));
                                         }
                                     });
                                 } catch (Exception e) {
@@ -246,30 +216,85 @@ public class MyApp implements IXposedHookLoadPackage {
                         }
 
 
+                        final List<Object> ret = new ArrayList();
+                        final Class clzContactInterface = cl.loadClass("com.alibaba.android.user.impl.ContactInterfaceImpl");
+                        for (final Method mn : clzContactInterface.getDeclaredMethods()) {
+                            final Class<?>[] types = mn.getParameterTypes();
+                            if (mn.toString().contains("long,enw") && types.length == 2) {
 
-                        final Class clzContactInterface = cl.loadClass("com.alibaba.android.dingtalk.userbase.ContactInterface");
+                                XposedHelpers.findAndHookMethod(clzContactInterface, mn.getName(),
+                                        types[0],
+                                        types[1],
+                                        new XC_MethodHook() {
+                                            @Override
+                                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                                                super.afterHookedMethod(param);
+                                                log(String.format("findMethod: %s, %s", mn.toString(),
+                                                        new Gson().toJson(new Object[]{
+                                                                param.args[0],
+                                                                1
+                                                        })));
 
-                        Method a1 = clzContactInterface.getMethod("a");
-                        Object invoke = a1.invoke(null);
+                                                log(String.format("analysis: %d, %d", map1.size(), mapLocalContact.size()));
 
-//                        for (Method mm: invoke.getClass().getDeclaredMethods() ) {
-//                            log("Method: ", mm.getName());
-//                        }
-//                        Class clzEnw = cl.loadClass("enw");
-                        Method a2 = invoke.getClass().getMethod("a");
+                                                if (ret.size() < 3) {
+                                                    ret.add(mn);
+                                                    ret.add(param.thisObject);
+                                                    ret.add(param.args[1]);
 
 
-                        log("ContactInterface instance: ", a2.getName());
+                                                    int n = 0;
+                                                    for (Long uid : mapLocalContact.keySet()) {
+                                                        if (n >= 5) {
+                                                            break;
+                                                        }
+//                                                        if (uid > 0 && !map1.containsKey(uid)) {
+                                                        if (uid > 0) {
+                                                            n += 1;
+                                                            mn.invoke(param.thisObject, uid, param.args[1]);
+                                                            LocalContactObject localContactObject = mapLocalContact.get(uid);
+                                                            log(String.format("mobileInfo: %d=%s name=%s", uid,
+                                                                    localContactObject.getPhoneNumber(),
+                                                                    localContactObject.getName()
+                                                            ));
+                                                        } else if (map1.containsKey(uid)) {
+//                                                            log(String.format("tryCall: %d, %s", uid,
+//                                                                    map1.get(uid).toString()));
+                                                        }
+                                                    }
+                                                }
+
+
+                                            }
+                                        });
+                            }
+                        }
+//                        XposedHelpers.findAndHookMethod(clzContactInterface, "a", new XC_MethodHook() {
+//                            @Override
+//                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+//                                super.afterHookedMethod(param);
+//                                log(String.format(
+//                                        "InterfaceImpl: %s, %s", param.getResult(), param.getResult().getClass()
+//                                ));
+//                                ret.add(param.getResult());
+//                            }
+//                        });
+
+//                        Method a1 = clzContactInterface.getMethod("a");
+//                        final Object invoke = a1.invoke(null);
+
+
                         Class clzSendFriend4 = cl.loadClass("com.alibaba.android.user.contact.activities.SendFriendRequestActivity$4");
                         XposedBridge.hookAllMethods(clzSendFriend4, "onDataReceived", new XC_MethodHook() {
                             @Override
                             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                                 super.afterHookedMethod(param);
-                                log("onDataReceived: ", new Gson().toJson(param.args[0]));
+
+                                String cont = new Gson().toJson(param.args[0]);
+                                log("onDataReceived: ", cont);
+
                             }
                         });
-
-                        a2.invoke(invoke, 371926622, clzSendFriend4.newInstance());
 
 
                     } catch (Exception e) {
@@ -527,7 +552,6 @@ public class MyApp implements IXposedHookLoadPackage {
 
         XposedBridge.log(String.format("%s\t%s", "MyApp", buf.toString()));
     }
-
 
     public void printData(Object[] items) {
 
