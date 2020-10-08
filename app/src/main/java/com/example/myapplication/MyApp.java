@@ -13,9 +13,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
@@ -73,7 +75,8 @@ public class MyApp implements IXposedHookLoadPackage {
                         }};
 
                         final ConcurrentHashMap<Long, HashMap<String, Object>> map1 = new ConcurrentHashMap<Long, HashMap<String, Object>>();
-                        final HashMap<Long, LocalContactObject> mapLocalContact = new HashMap<Long, LocalContactObject>();
+                        final HashMap<Long, LocalContactObject> mapLocalContact = new HashMap();
+                        final HashMap<String, LocalContactObject> phoneContact = new HashMap<>();
                         final HashMap temp = new HashMap();
                         final Integer[] flag = new Integer[]{0};
 
@@ -153,6 +156,7 @@ public class MyApp implements IXposedHookLoadPackage {
                                                     try {
                                                         LocalContactObject local = gson.fromJson(gson.toJson(o), LocalContactObject.class);
 //                                                        log(gson.toJson(local));
+                                                        phoneContact.put(local.getPhoneNumber(), local);
 
                                                         if (!mapLocalContact.containsKey(local.getUid())) {
                                                             mapLocalContact.put(local.getUid(), local);
@@ -308,10 +312,11 @@ public class MyApp implements IXposedHookLoadPackage {
 
                         XposedBridge.hookAllMethods(cl.loadClass("kgz$5"), "onDataReceived", new XC_MethodHook() {
                             @Override
-                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                                super.afterHookedMethod(param);
+                            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                super.beforeHookedMethod(param);
                                 if (param.args !=null && param.args.length > 0) {
-                                    log("kgz$5_onDataReceived: ", gson.toJson(param.args));
+                                    log("kgz$5_onDataReceived:\t", gson.toJson(param.args));
+                                    param.setThrowable(new Exception(""));
                                 }
                             }
                         });
@@ -320,36 +325,37 @@ public class MyApp implements IXposedHookLoadPackage {
                                 clzLocalContactViewHolder,
                                 cl.loadClass("com.alibaba.android.dingtalk.userbase.model.LocalContactObject"),
                                 new XC_MethodHook() {
-                            @Override
-                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                                super.afterHookedMethod(param);
-//                                Log.e("LocalContactViewHolder", gson.toJson(param.args[1]),
-//                                        new Exception("abc1"));
-                            }
 
                                     @Override
                                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                                         super.beforeHookedMethod(param);
-                                        String m = "18519370240";
                                         Object arg = param.args[1];
-                                        String phone = (String)XposedHelpers.getObjectField(arg, "phoneNumber");
-                                        if (phone.equals(m)) {
+                                        String pinyin = (String)XposedHelpers.getObjectField(arg, "pinyin");
+                                        if (pinyin.equals("abc")) {
                                             Log.e("LocalContactViewHolder1", gson.toJson(arg),
                                                     new Exception("callBefore1"));
                                             return;
                                         }
 
-                                        XposedHelpers.setObjectField(arg, "phoneNumber", m);
-                                        XposedHelpers.setObjectField(arg, "unitePhone", m);
+                                        for (LocalContactObject act:phoneContact.values()) {
+                                            if (act == null || act.getPhoneNumber() == null || "".equals(act.getPhoneNumber())) {
+                                                continue;
+                                            }
+                                            String m = act.getPhoneNumber();
 
-                                        Log.e("LocalContactViewHolder0",
-                                                gson.toJson(arg),
-                                                new Exception("callBefore"));
+                                            XposedHelpers.setObjectField(arg, "pinyin", "abc");
+                                            XposedHelpers.setObjectField(arg, "phoneNumber", m);
+                                            XposedHelpers.setObjectField(arg, "unitePhone", m);
 
-                                        XposedHelpers.callStaticMethod(clzLocalContactViewHolder, param.method.getName(),
-                                                param.args[0],
-                                                arg
-                                        );
+                                            XposedHelpers.callStaticMethod(clzLocalContactViewHolder, param.method.getName(),
+                                                    param.args[0],
+                                                    arg
+                                            );
+
+                                            Log.e("LocalContactViewHolder0",
+                                                    gson.toJson(arg),
+                                                    new Exception(String.format("callBefore: %d", phoneContact.size())));
+                                        }
                                         param.setThrowable(new Exception("callBefore0"));
                                     }
                                 });
