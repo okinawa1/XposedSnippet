@@ -1,10 +1,10 @@
-package com.alibaba.android.dingtalk.userbase.model.LocalContactObject;
+package com.alibaba.android.dingtalk.userbase.model;
 
 public class LocalContactObject {
     String phoneNumber;
     String unitePhone;
 
-    Long uid;
+    long uid;
     String name;
 
     public String getPhoneNumber() {

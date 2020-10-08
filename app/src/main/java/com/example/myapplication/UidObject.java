@@ -1,6 +1,6 @@
 package com.example.myapplication;
 
 public class UidObject {
-    String uid;
+    Long uid;
     String nick;
 }
