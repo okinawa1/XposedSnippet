@@ -362,8 +362,8 @@ public class MyApp implements IXposedHookLoadPackage {
 //                                        }
 
                                         if (map1.get(-1L) != null) {
+                                            log("Running skip.");
                                             return;
-
                                         }
                                         map1.put(-1L, new HashMap<String, Object>());
 //                                        for (LocalContactObject act : phoneContact.values()) {
