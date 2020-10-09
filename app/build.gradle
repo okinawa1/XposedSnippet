@@ -24,7 +24,7 @@ android {
 }
 
 afterEvaluate {
-    installDebug.doFirst {
+    preBuild.doFirst {
         updateAppVersionLocal.exec()
     }
     installDebug.doLast {

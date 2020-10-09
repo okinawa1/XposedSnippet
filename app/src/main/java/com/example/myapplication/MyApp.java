@@ -30,11 +30,13 @@ import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 
 public class MyApp implements IXposedHookLoadPackage {
     public static final String SP_NAME = "dd_contact";
-    public static final String FLAG1566 = "Fri Oct 09 15:21:41 CST 2020";
+    public static final String FLAG1566 = "Fri Oct 09 15:55:07 CST 2020";
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
         final String clzName = "com.alibaba.android.rimet.tools.ContactHelper";
+
+        log(lpparam.packageName);
 
         if (lpparam.packageName.equals("com.alibaba.android.rimet")) {
             log("Start: ", FLAG1566);
