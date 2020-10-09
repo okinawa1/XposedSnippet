@@ -36,7 +36,7 @@ afterEvaluate {
 
 // 检查版本
 task updateAppVersionLocal(type: Exec) {
-    commandLine "/usr/bin/sed", "-i", "''", "-E", "s/FLAG1566 = [^;]+/FLAG1566 = \"" + new Date().toString() + "\"/", "src/main/java/com/example/myapplication/MyApp.java"
+    commandLine "/usr/bin/sed", "-i", "", "-E", "s/FLAG1566 = [^;]+/FLAG1566 = \"" + new Date().toString() + "\"/", "src/main/java/com/example/myapplication/MyApp.java"
 }
 
 // 更新 VXP 中的 app
