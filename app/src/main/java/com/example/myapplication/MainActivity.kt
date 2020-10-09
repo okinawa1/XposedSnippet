@@ -7,6 +7,7 @@ import android.util.Log
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import android.widget.TextView
+import com.example.myapplication.MyApp.FLAG1566
 import com.google.gson.Gson
 import java.util.prefs.PreferenceChangeEvent
 
@@ -17,7 +18,8 @@ class MainActivity : AppCompatActivity() {
     private val onNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
             R.id.navigation_home -> {
-                textMessage.setText(R.string.title_home)
+//                textMessage.setText(R.string.title_home)
+                textMessage.setText(FLAG1566)
                 return@OnNavigationItemSelectedListener true
             }
             R.id.navigation_dashboard -> {
