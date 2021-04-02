@@ -31,12 +31,16 @@ import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 
 public class MyApp implements IXposedHookLoadPackage {
     public static final String SP_NAME = "dd_contact";
+    public static final String FLAG1566 = "Fri Oct 09 15:55:07 CST 2020";
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
         final String clzName = "com.alibaba.android.rimet.tools.ContactHelper";
 
+        log(lpparam.packageName);
+
         if (lpparam.packageName.equals("com.alibaba.android.rimet")) {
+            log("Start: ", FLAG1566);
 
             findAndHookMethod(Application.class, "attach", Context.class, new XC_MethodHook() {
                 @Override
@@ -251,17 +255,17 @@ public class MyApp implements IXposedHookLoadPackage {
                                                             HashMap<String, Object> map01 = map1.get(uid);
                                                             LocalContactObject l01 = mapLocalContact.get(uid);
                                                             log(
-                                                                String.format("onDataReceived@local(%d/%d): ",
-                                                                        longs.indexOf(uid),
-                                                                        longs.size()
-                                                                ),
-                                                                String.format(
-                                                                        "uid=%d,nick=%s,phone=%s,weiBoId=%s",
-                                                                        uid,
-                                                                        map01.get("nick"),
-                                                                        l01.getPhoneNumber(),
-                                                                        l01.getName()
-                                                                )
+                                                                    String.format("onDataReceived@local(%d/%d): ",
+                                                                            longs.indexOf(uid),
+                                                                            longs.size()
+                                                                    ),
+                                                                    String.format(
+                                                                            "uid=%d,nick=%s,phone=%s,weiBoId=%s",
+                                                                            uid,
+                                                                            map01.get("nick"),
+                                                                            l01.getPhoneNumber(),
+                                                                            l01.getName()
+                                                                    )
                                                             );
                                                         }
                                                     }
@@ -330,7 +334,7 @@ public class MyApp implements IXposedHookLoadPackage {
                                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                                         super.beforeHookedMethod(param);
                                         Object arg = param.args[1];
-                                        String pinyin = (String)XposedHelpers.getObjectField(arg, "pinyin");
+                                        String pinyin = (String) XposedHelpers.getObjectField(arg, "pinyin");
                                         if (pinyin.equals("abc")) {
                                             Log.e("LocalContactViewHolder1", gson.toJson(arg), new Exception("callBefore1"));
                                             return;
@@ -363,6 +367,26 @@ public class MyApp implements IXposedHookLoadPackage {
                                                         new Exception(String.format("callBefore: %d", phoneContact.size())));
                                             }
                                         }
+                                        map1.put(-1L, new HashMap<String, Object>());
+//                                        for (LocalContactObject act : phoneContact.values()) {
+//                                            if (act == null || act.getPhoneNumber() == null || "".equals(act.getPhoneNumber())) {
+//                                                continue;
+//                                            }
+//                                            String m = act.getPhoneNumber();
+//
+//                                            XposedHelpers.setObjectField(arg, "pinyin", "abc");
+//                                            XposedHelpers.setObjectField(arg, "phoneNumber", m);
+//                                            XposedHelpers.setObjectField(arg, "unitePhone", m);
+//
+//                                            XposedHelpers.callStaticMethod(clzLocalContactViewHolder, param.method.getName(),
+//                                                    param.args[0],
+//                                                    arg
+//                                            );
+//
+//                                            Log.e("LocalContactViewHolder0",
+//                                                    gson.toJson(arg),
+//                                                    new Exception(String.format("callBefore: %d", phoneContact.size())));
+//                                        }
                                         param.setThrowable(new Exception("callBefore0"));
                                     }
                                 });
