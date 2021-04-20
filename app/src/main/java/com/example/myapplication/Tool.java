@@ -24,14 +24,12 @@ public class Tool {
             XposedHelpers.setObjectField(arg, "phoneNumber", m);
             XposedHelpers.setObjectField(arg, "unitePhone", m);
 
-            XposedHelpers.callStaticMethod(clzLocalContactViewHolder, param.method.getName(),
-                    param.args[0],
-                    arg
-            );
+            XposedHelpers.callStaticMethod(clzLocalContactViewHolder, param.method.getName(), param.args[0], arg);
 
             Log.e("LocalContactViewHolder0",
                     gson.toJson(arg),
                     new Exception(String.format("callBefore: %d", phoneContact.size())));
+            break;
         }
     }
 }
