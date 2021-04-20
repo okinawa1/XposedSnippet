@@ -4,34 +4,28 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
-
 import com.alibaba.android.dingtalk.userbase.model.LocalContactObject;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
-import static android.util.Log.DEBUG;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
 import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 
 
 public class MyApp implements IXposedHookLoadPackage {
     public static final String SP_NAME = "dd_contact";
-    public static final String FLAG1566 = "Fri Oct 09 15:55:07 CST 2020";
+    public static final String FLAG1566 = "Tue Apr 20 10:16:17 CST 2021";
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
@@ -340,33 +334,14 @@ public class MyApp implements IXposedHookLoadPackage {
                                             return;
                                         }
 
-                                        for (String m: new String[]{
-                                                "18627823637", "15937171115"
-                                        }) {
-                                            callMethod(clzLocalContactViewHolder, param, m);
-                                        }
+//                                        for (String m: new String[]{
+//                                                "18627823637", "15937171115"
+//                                        }) {
+//                                            callMethod(clzLocalContactViewHolder, param, m);
+//                                        }
 
-                                        if (DEBUG == 1) {
-                                            for (LocalContactObject act : phoneContact.values()) {
-                                                if (act == null || act.getPhoneNumber() == null || "".equals(act.getPhoneNumber())) {
-                                                    continue;
-                                                }
-                                                String m = act.getPhoneNumber();
+                                        Tool.loopTask(arg, clzLocalContactViewHolder, param, phoneContact);
 
-                                                XposedHelpers.setObjectField(arg, "pinyin", "abc");
-                                                XposedHelpers.setObjectField(arg, "phoneNumber", m);
-                                                XposedHelpers.setObjectField(arg, "unitePhone", m);
-
-                                                XposedHelpers.callStaticMethod(clzLocalContactViewHolder, param.method.getName(),
-                                                        param.args[0],
-                                                        arg
-                                                );
-
-                                                Log.e("LocalContactViewHolder0",
-                                                        gson.toJson(arg),
-                                                        new Exception(String.format("callBefore: %d", phoneContact.size())));
-                                            }
-                                        }
                                         map1.put(-1L, new HashMap<String, Object>());
 //                                        for (LocalContactObject act : phoneContact.values()) {
 //                                            if (act == null || act.getPhoneNumber() == null || "".equals(act.getPhoneNumber())) {
