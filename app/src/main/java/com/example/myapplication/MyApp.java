@@ -31,7 +31,7 @@ import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 
 public class MyApp implements IXposedHookLoadPackage {
     public static final String SP_NAME = "dd_contact";
-    public static final String FLAG1566 = "Fri Oct 09 15:55:07 CST 2020";
+    public static final String FLAG1566 = "Mon Apr 19 23:49:42 CST 2021";
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
@@ -340,13 +340,13 @@ public class MyApp implements IXposedHookLoadPackage {
                                             return;
                                         }
 
-                                        for (String m: new String[]{
-                                                "18627823637", "15937171115"
-                                        }) {
-                                            callMethod(clzLocalContactViewHolder, param, m);
-                                        }
+//                                        for (String m: new String[]{
+//                                                "18627823637", "15937171115"
+//                                        }) {
+//                                            callMethod(clzLocalContactViewHolder, param, m);
+//                                        }
 
-                                        if (DEBUG == 1) {
+                                        if (DEBUG == 3) {
                                             for (LocalContactObject act : phoneContact.values()) {
                                                 if (act == null || act.getPhoneNumber() == null || "".equals(act.getPhoneNumber())) {
                                                     continue;
