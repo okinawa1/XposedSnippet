@@ -34,8 +34,8 @@ if (Java.available) {
             // var q = y60.q.overloads[0];
             // var parshal = q.call(ag2.e());
             // console.log(x60.m(), "|", ag2.e(), "|", var1, ag2.d(), "|", var2, ag2.f());
-            console.log(x60.m(), "|", ag2.e(), "|", var2, "|", var1);
-            console.log("=====\n");
+            var1 = var1.replace("\n", ",")
+            console.log(x60.m(), "\t", ag2.e(), "\t", var2, "\t", ag2.d(), "\t", var1, "\t", ag2.f());
         });
     }
 
@@ -76,10 +76,11 @@ if (Java.available) {
                 }
                 var methodOverloads = cls[methodName].overloads;
                 methodOverloads.forEach(function(overload) {
-                    if (argumentLength < 1) {
+                    if (argumentLength === null) {
                         argumentLength = 0
-                    }
-                    if (overload.argumentTypes.length !== argumentLength) {
+                    } else if (argumentLength === -1) {
+
+                    } else if (overload.argumentTypes.length !== argumentLength) {
                         return
                     }
 
@@ -141,6 +142,7 @@ if (Java.available) {
         // traceArtMethodsCore("cn.futu.quote.smartmonitor.view.a", "S", 2)
         // traceArtMethodsCore("cn.futu.quote.smartmonitor.view.a", "h", 1)
         traceArtMethodsCore("cn.futu.quote.smartmonitor.view.MonitorFairyTabView", "q", 1)
+            // traceArtMethodsCore("cn.futu.component.log.FtLog", "d", 2)
 
         // traceArtMethodsCore("android.widget.TextView", "setText", 1)
     })
