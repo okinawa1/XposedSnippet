@@ -46,9 +46,7 @@ public class MyApp implements IXposedHookLoadPackage {
 
                     final Gson gson = new Gson();
                     try {
-
                         checkInit();
-
                     } catch (Exception e) {
                         log(String.format("MyApp 寻找%s报错:\t%s", "", e.toString()));
                     }

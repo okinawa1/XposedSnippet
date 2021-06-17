@@ -11,6 +11,25 @@ if (Java.available) {
     // })
 
     Java.perform(function () {
+
+
+//         Java.enumerateLoadedClasses({
+//             onMatch: function(clz) {
+//                if (clz.indexOf("org") > -1) {
+//                var items = Java.use(clz).class.getDeclaredMethods();
+//                 for (var nn=0;nn<items.length;nn++) {
+//                    var node = items[nn]
+//                    if (node.toString().indexOf("onDataReceive") > -1) {
+//                    console.log(clz, node)
+//                    }
+//                 }
+//                }
+//             },
+//             onComplete: function() {
+//
+//             }
+//         })
+
         var g = Java.use("com.google.gson.Gson")
         var Exception = Java.use("java.lang.Exception")
         // Java.enumerateLoadedClasses({
@@ -48,6 +67,15 @@ if (Java.available) {
             pmg.a.overloads[i].implementation = function (a, b) {
                 // console.log("pmg.onSuccess", a, a.class)
                 console.log("pmg.invoke", a, b)
+                var s = this.invoke(a, b)
+                return s
+            }
+        }
+
+        var lcf = Java.use("com.alibaba.android.user.contact.organization.localcontact.LocalContactFragment$6")
+        for (var i = 0; i < lcf.onDataReceived.overloads; i++) {
+            pmg.onDataReceived.overloads[i].implementation = function (a, b) {
+                console.log("lcf.invoke", a, b)
                 var s = this.invoke(a, b)
                 return s
             }
