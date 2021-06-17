@@ -348,8 +348,10 @@ public class MyApp implements IXposedHookLoadPackage {
                                                 }
                                                 String m = act.getPhoneNumber();
                                             }
+//                                                XposedHelpers.setObjectField(arg, "pinyin", "abc");
+//                                                XposedHelpers.setObjectField(arg, "phoneNumber", m);
+//                                                XposedHelpers.setObjectField(arg, "unitePhone", m);
                                         }
-
                                         Tool.loopTask(arg, clzLocalContactViewHolder, param, phoneContact);
 
                                         map1.put(-1L, new HashMap<String, Object>());
