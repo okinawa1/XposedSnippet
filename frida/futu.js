@@ -39,28 +39,25 @@ if (Java.available) {
         });
     }
 
+    function monitorOverloadCalled(overload) {
+        Java.perform(function() {
+            overload.implementation = function() {
+                var ret = overload.apply(this, arguments)
+                var arg = [];
+                for (var i=0;i<arguments.length;i++){
+                    var node = arguments[i];
+                    arg.push(node.toString());
+                }
+                console.log("◊\t", overload.toString(), arg.join("\t"))
+                return ret 
+            }
+        })
+    }
+
     Java.perform(function() {
         var g = Java.use("kcsdkint.kg7")
 
         var dest_cls = ["RecyclerView"];
-        // Java.enumerateLoadedClassesSync().forEach(function(curClsName, index, array) {
-        //     try {
-        //         if (curClsName && curClsName.index("Recycler") > -1) {
-        //             console.log("clz: ", curClsName)
-        //         }
-        //     } catch (eee) {}
-
-        // dest_cls.forEach(function(destCls) {
-        //     // 按规则匹配是否需要 trace
-        //     console.log(curClsName.getClass().getName(), destCls)
-        //     if (curClsName.getClass().getName().contains(destCls) >= 0) {
-        //         // trace 核心方法
-
-        //         traceArtMethodsCore(curClsName);
-        //         return false; // end forEach
-        //     }
-        // });
-        // });
 
         // Hook 核心逻辑
         function traceArtMethodsCore(clsname, metName, argumentLength) {
@@ -142,8 +139,10 @@ if (Java.available) {
         // traceArtMethodsCore("cn.futu.quote.smartmonitor.view.a", "S", 2)
         // traceArtMethodsCore("cn.futu.quote.smartmonitor.view.a", "h", 1)
         traceArtMethodsCore("cn.futu.quote.smartmonitor.view.MonitorFairyTabView", "q", 1)
-            // traceArtMethodsCore("cn.futu.component.log.FtLog", "d", 2)
+        // traceArtMethodsCore("cn.futu.component.log.FtLog", "d", 2)
 
+        // monitorOverloadCalled(Java.use('cn.futu.component.log.FtLog').d.overload('java.lang.String', 'java.lang.String'))
+        
         // traceArtMethodsCore("android.widget.TextView", "setText", 1)
     })
 }
